@@ -1,0 +1,13 @@
+dist/
+build/
+
+# From my personal python environment
+slideSearch/
+venv/
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.env
+.venv
+env/

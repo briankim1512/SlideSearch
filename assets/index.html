@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="./src/style.css">
+        <title>Slide Search</title>
+    </head>
+    <body>
+        <div id="landing-pane">
+            <h1>SlideSearch</h1>
+            <input type="text" id="search-input" placeholder="슬라이드 검색..." >
+            <div id="upload-zone">
+                <p>PPT 파일을 클릭하여 업로드하세요</p>
+            </div>
+            <div id="loading" style="display: none;">
+                <p>업로드 중...</p>
+                <div class="spinner"></div>
+            </div>
+        </div>
+        <div id="search-pane" style="display: none;">
+            <div id="search-header">
+                <button id="back-button">뒤로</button>
+                <h4>검색 결과수: <span id="result-count">0</span></h4>
+            </div>
+            <div id="search-inputs">
+                <input type="text" id="search-query" class="search-input" placeholder="검색어 입력...">
+                <button id="advanced-search-button">고급 검색</button>
+                <div id="advanced-search-options" style="display: none;">
+                    <h3>제목 검색</h3>
+                    <input type="text" id="advanced-search-title" class="search-input" placeholder="제목 검색...">
+                    <h3>날짜 범위 검색</h3>
+                    <div id="advanced-search-date-range">
+                        <input type="date" id="advanced-search-date-range-start" class="search-input" placeholder="시작 날짜 검색...">
+                        <span>~</span>
+                        <input type="date" id="advanced-search-date-range-end" class="search-input" placeholder="종료 날짜 검색...">
+                    </div>
+                </div>
+            </div>
+            <div id="results">
+                <table id="results-table">
+                    <thead id="results-header">
+                        <tr>
+                            <th class="results-select">선택</th>
+                            <th class="results-image">이미지</th>
+                            <th class="results-title">PPT 제목</th>
+                            <th class="results-modified">수정 날짜</th>
+                            <th class="results-slide-number">장표 번호</th>
+                            <th class="results-text">텍스트</th>
+                            <th class="results-notes">노트</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-body">
+                        <!-- Will be populated with search results -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="stitch-controls" style="margin-top: 10px; text-align: right;">
+                <button id="stitch-button" disabled>선택한 장표로 새 PPT 만들기</button>
+            </div>
+            <div id="zoom-pane" style="display: none;">
+                <img id="zoomed-image" src="" alt="Zoomed Image">
+            </div>
+        </div>
+        <script src="./src/script.js" defer></script>
+    </body>
+</html>
