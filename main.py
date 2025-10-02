@@ -47,6 +47,9 @@ def initialize_database():
     connection.commit()
     connection.close()
 
+def initialize_window(api, window):
+    api.set_window(window)
+
 def get_index():
     path = os.path.join(
         os.path.dirname(__file__),
@@ -73,6 +76,9 @@ class Api:
         self.pptx_app = None
         self.sqlite_conn = None
         self.sqlite_cursor = None
+
+    def set_window(self, window):
+        self.window = window
 
     def pick_files(self):
         logging.info('Opening file dialog...')
@@ -192,9 +198,9 @@ class Api:
             existing_count = self.sqlite_cursor.fetchone()[0]
             if existing_count > 0:
                 logging.warning(
-                    f"Presentation {pptx_name} already exists in the ",
-                    f"database with {existing_count} slides", 
-                    ", skipping insertion."
+                    f"Presentation {pptx_name} already exists in the " + \
+                    f"database with {existing_count} slides, " + \
+                    "skipping insertion."
                 )
                 raise Exception(
                     "Presentation already exists in the database."
@@ -282,8 +288,8 @@ class Api:
                     ' it already exists in the database.'
                 )
             else:
-                logging.error("Error parsing PPTX file:", str(e))
-                logging.error("PPTX name is ", pptx_name)
+                logging.error(f"Error parsing PPTX file: {str(e)}")
+                logging.error(f"PPTX name is: {pptx_name}")
                 logging.error("Continuing to next file...")
                 pass
         finally:
@@ -306,9 +312,13 @@ class Api:
             self.sqlite_cursor = self.sqlite_conn.cursor()
             results = []
             error_paths = []
+            progress = 0
 
             if not paths:
                 return "No files selected"
+            self.window.run_js("updateUploadStatus('업로드 중...');")
+            self.window.run_js("updateUploadProgress(0);")
+
             for path in paths:
                 if not path.lower().endswith('.pptx'):
                     logging.warning(
@@ -319,9 +329,19 @@ class Api:
                 try:
                     slides = self.parse_pptx(path)
                     results.extend(slides)
+                    progress += 1
+                    progress_text = \
+                        f'업로드 중... ({progress}/{len(paths)} 슬라이드 처리됨)'
+                    progress_percentage = int((progress / len(paths)) * 100)
+                    self.window.run_js(f"updateUploadStatus('{progress_text}');")
+                    self.window.run_js(f"updateUploadProgress({progress_percentage});")
                 except Exception as e:
                     logging.error(f"Error processing {path}: {str(e)}")
                     error_paths.append(path)
+            progress_text = '마무리 중...'
+            self.window.run_js(f"updateUploadStatus('{progress_text}');")
+            self.window.run_js("updateUploadProgress(100);")
+
         finally:
             self.pptx_app.Quit()
             self.sqlite_conn.close()
@@ -337,6 +357,7 @@ class Api:
                     "Errors occurred with the following " + \
                     f"files: {error_paths}"
                 )
+            self.window.run_js("resetUploadStatus();")
 
         return results
     
@@ -494,11 +515,14 @@ if __name__ == '__main__':
     logging.info("Initializing database...")
     initialize_database()
     logging.info("Starting the webview application...")
-    webview.create_window(
+    api = Api()
+    window = webview.create_window(
         'My WebView App',
         'assets/index.html',
-        js_api=Api(),
+        js_api=api,
         width=1280,
         height=768
     )
+    window.events.loaded += lambda: initialize_window(api, window)
+    
     webview.start(http_server=True)

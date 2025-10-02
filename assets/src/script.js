@@ -33,6 +33,10 @@ const dom = {
     // Views
     results: document.getElementById('results'),
     loading: document.getElementById('loading'),
+    loadingText: document.getElementById('loading-text'),
+    loadingSpinner: document.getElementById('loading-spinner'),
+    loadingBar: document.getElementById('loading-bar'),
+    loadingProgress: document.getElementById('loading-progress'),
     zoomedImage: document.getElementById('zoomed-image'),
     advancedSearchOptions: document.getElementById('advanced-search-options'),
 };
@@ -45,6 +49,43 @@ function showPane(pane) {
         dom.landingPane.style.display = 'block';
         dom.searchPane.style.display = 'none';
     }
+}
+
+async function uploadPresentations() {
+    const paths = await pywebview.api.pick_files();
+    dom.uploadZone.style.display = 'none';
+    dom.loading.style.display = 'block';
+
+    if (!paths.length) {
+        dom.uploadZone.style.display = 'block';
+        dom.loading.style.display = 'none';
+        return;
+    }
+
+    const ingestResults = await pywebview.api.ingest_files(paths);
+    console.log(ingestResults)
+    
+    dom.uploadZone.style.display = 'block';
+    dom.loading.style.display = 'none';
+
+    dom.searchInput.focus();
+}
+
+function updateUploadStatus(text) {
+    dom.loadingText.textContent = text;
+}
+
+function resetUploadStatus() {
+    dom.loadingText.textContent = '업로드 시작 중...';
+    dom.loadingProgress.style.width = '0%';
+    dom.loadingSpinner.style.display = 'block';
+    dom.loadingBar.style.display = 'none';
+}
+
+function updateUploadProgress(percentage) {
+    dom.loadingSpinner.style.display = 'none';
+    dom.loadingBar.style.display = 'block';
+    dom.loadingProgress.style.width = `${percentage}%`;
 }
 
 function updateResults(results, prev_results=[]) {
@@ -194,25 +235,7 @@ function resetSearch() {
     showPane('landing');
 }
 
-dom.uploadZone.addEventListener('click', async () => {
-    const paths = await pywebview.api.pick_files();
-    dom.uploadZone.style.display = 'none';
-    dom.loading.style.display = 'block';
-
-    if (!paths.length) {
-        dom.uploadZone.style.display = 'block';
-        dom.loading.style.display = 'none';
-        return;
-    }
-
-    const ingestResults = await pywebview.api.ingest_files(paths);
-    console.log(ingestResults)
-    
-    dom.uploadZone.style.display = 'block';
-    dom.loading.style.display = 'none';
-
-    dom.searchInput.focus();
-});
+dom.uploadZone.addEventListener('click', uploadPresentations);
 
 dom.searchInput.addEventListener('click', (event) => {
     showPane('search');

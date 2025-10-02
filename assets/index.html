@@ -14,8 +14,11 @@
                 <p>PPT 파일을 클릭하여 업로드하세요</p>
             </div>
             <div id="loading" style="display: none;">
-                <p>업로드 중...</p>
-                <div class="spinner"></div>
+                <p id="loading-text">업로드 시작 중...</p>
+                <div id="loading-spinner"></div>
+                <div id="loading-bar">
+                    <div id="loading-progress"></div>
+                </div>
             </div>
         </div>
         <div id="search-pane" style="display: none;">
