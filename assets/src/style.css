@@ -157,7 +157,6 @@ h1 {
     }
     #zoom-pane {
         position: fixed;
-        cursor: pointer;
         top: 0;
         left: 0;
         width: 100vw;
@@ -167,9 +166,23 @@ h1 {
         align-items: center;
         justify-content: center;
         z-index: 1000;
+        #zoom-header {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+            width: 100%;
+            #zoom-back-button {
+                background: none;
+                cursor: pointer;
+                border: none;
+                color: #fff;
+                font-size: 24px;
+                cursor: pointer;
+                padding: 5px 10px;
+            }
+        }
         #zoomed-image {
-            max-width: 90%;
-            max-height: 90%;
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.5);
         }

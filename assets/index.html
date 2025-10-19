@@ -62,7 +62,12 @@
                 <button id="stitch-button" disabled>선택한 장표로 새 PPT 만들기</button>
             </div>
             <div id="zoom-pane" style="display: none;">
-                <img id="zoomed-image" src="" alt="Zoomed Image">
+                <div id="zoom-content">
+                    <div id="zoom-header">
+                        <button id="zoom-back-button">X</button>
+                    </div>
+                    <img id="zoomed-image" src="" alt="Zoomed Image">
+                </div>
             </div>
         </div>
         <script src="./src/script.js" defer></script>
