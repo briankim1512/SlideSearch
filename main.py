@@ -369,6 +369,8 @@ class Api:
         term_query = ' AND WHERE (text LIKE ? OR notes LIKE ?)'
         title_query = ' AND WHERE pptx_name LIKE ?'
         time_range_query = ' AND WHERE pptx_modified BETWEEN ? AND ?'
+        order_query = ' ORDER BY pptx_modified DESC, pptx_name ASC, ' + \
+            'slide_number ASC'
 
         if query['text']:
             term_query = term_query.replace('?', f"'%{query['text']}%'")
@@ -409,6 +411,8 @@ class Api:
                 temp_query = time_range_query.replace('WHERE ', '')
                 base_query += temp_query
 
+        base_query += order_query
+        
         logging.info(base_query)
 
         connection = sqlite3.connect(DATABASE_PATH)
