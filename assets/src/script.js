@@ -44,6 +44,9 @@ const dom = {
     advancedSearchOptions: document.getElementById('advanced-search-options'),
     titleOrder: document.getElementById('title-order'),
     modifiedOrder: document.getElementById('modified-order'),
+
+    // Classes
+    resizers: document.querySelectorAll('.resizer'),
 };
 
 ////////////////////
@@ -344,6 +347,31 @@ async function stitchSelectedSlides() {
     dom.stitchButton.disabled = false;
 }
 
+///////////////////////////
+// Resizer related functions
+///////////////////////////
+
+function resizeColumn(resizer, event) {
+    const th = resizer.parentElement;
+    const startX = event.pageX;
+    const startWidth = th.offsetWidth;
+
+    const onMouseMove = e => {
+        const newWidth = startWidth + (e.pageX - startX) - 20;
+        // +2 for resizer adjustment compensation
+        th.style.width = newWidth + "px";
+    };
+
+    const onMouseUp = () => {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+    };
+
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
+}
+
+
 dom.uploadZone.addEventListener('click', uploadPresentations);
 dom.searchInput.addEventListener('click', focusOnSearchQuery);
 dom.backButton.addEventListener('click', resetSearch);
@@ -361,3 +389,8 @@ dom.modifiedOrder.addEventListener('click', () => {
 });
 dom.zoomOpenButton.addEventListener('click', openZoomedSlide);
 dom.zoomBackButton.addEventListener('click', exitZoom);
+dom.resizers.forEach(resizer => {
+    resizer.addEventListener('mousedown', event => {
+        resizeColumn(resizer, event);
+    });
+});
