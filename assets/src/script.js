@@ -7,7 +7,6 @@ const state = {
     },
     searchTimeout: null,
     searchPaneVisible: false,
-    resultsRange: [0, 20],
     results: [],
     selectedSlides: [],
 };
@@ -22,6 +21,8 @@ const dom = {
     fileInput: document.getElementById('file-input'),
     uploadZone: document.getElementById('upload-zone'),
     backButton: document.getElementById('back-button'),
+    zoomOpenButton: document.getElementById('zoom-open-button'),
+    zoomBackButton: document.getElementById('zoom-back-button'),
     stitchButton: document.getElementById('stitch-button'),
     searchInput: document.getElementById('search-input'),
     searchQuery: document.getElementById('search-query'),
@@ -37,6 +38,7 @@ const dom = {
     loadingSpinner: document.getElementById('loading-spinner'),
     loadingBar: document.getElementById('loading-bar'),
     loadingProgress: document.getElementById('loading-progress'),
+    zoomedId: document.getElementById('zoomed-id'),
     zoomedImage: document.getElementById('zoomed-image'),
     advancedSearchOptions: document.getElementById('advanced-search-options'),
 };
@@ -125,7 +127,7 @@ function updateResults(results, prev_results=[]) {
                 img.style.maxWidth = '80px';
                 img.style.maxHeight = '60px';
                 img.addEventListener('click', () => {
-                    zoomOnPhoto(result[key]);
+                    zoomOnPhoto(result[key], result['hash']);
                 });
                 cell.appendChild(img);
             } else if (key === 'hash') {
@@ -147,12 +149,10 @@ function updateResults(results, prev_results=[]) {
     document.getElementById('result-count').textContent = results.length;
 }
 
-function zoomOnPhoto(path) {
+function zoomOnPhoto(path, id) {
     dom.zoomedImage.src = path;
+    dom.zoomedId.textContent = id;
     dom.zoomPane.style.display = 'flex';
-    dom.zoomPane.addEventListener('click', () => {
-        dom.zoomPane.style.display = 'none';
-    });
 }
 
 function selectSlide (hash) {
@@ -235,6 +235,27 @@ function resetSearch() {
     showPane('landing');
 }
 
+async function openZoomedSlide() {
+    const slideId = dom.zoomedId.textContent;
+    dom.zoomOpenButton.textContent = '처리 중...';
+    dom.zoomOpenButton.style.textDecoration = 'none';
+    dom.zoomOpenButton.disabled = true;
+    if (slideId) {
+        await pywebview.api.stitch_slides([slideId]);
+        dom.zoomOpenButton.textContent = '장표 열기';
+        dom.zoomOpenButton.style.textDecoration = 'underline';
+        dom.zoomOpenButton.disabled = false;
+        return;
+    }
+    alert('장표 ID를 불러올 수 없습니다.');
+}
+
+function exitZoom() {
+    dom.zoomedImage.src = '';
+    dom.zoomedId.textContent = '';
+    dom.zoomPane.style.display = 'none';
+}
+
 dom.uploadZone.addEventListener('click', uploadPresentations);
 
 dom.searchInput.addEventListener('click', (event) => {
@@ -266,8 +287,7 @@ dom.stitchButton.addEventListener('click', async () => {
     dom.stitchButton.disabled = true;
     dom.stitchButton.textContent = '처리 중...';
     
-    const message = await pywebview.api.stitch_slides(state.selectedSlides);
-    alert(message);
+    await pywebview.api.stitch_slides(state.selectedSlides);
     
     const checkboxes = document.querySelectorAll('#results-body input[type="checkbox"]');
     checkboxes.forEach(checkbox => {
@@ -284,3 +304,5 @@ dom.searchQuery.addEventListener('input', searchSlides);
 dom.advancedSearchTitle.addEventListener('input', searchSlides);
 dom.advancedSearchDateRangeStart.addEventListener('change', checkDateInputs);
 dom.advancedSearchDateRangeEnd.addEventListener('change', checkDateInputs);
+dom.zoomOpenButton.addEventListener('click', openZoomedSlide);
+dom.zoomBackButton.addEventListener('click', exitZoom);
