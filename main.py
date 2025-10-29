@@ -411,6 +411,19 @@ class Api:
                 temp_query = time_range_query.replace('WHERE ', '')
                 base_query += temp_query
 
+        if len(query['order_by']) > 0:
+            if query['order_by'][0] == 'title':
+                order_query = ' ORDER BY pptx_name SORTINDEX, ' + \
+                    'pptx_modified DESC, slide_number ASC'
+            elif query['order_by'][0] == 'modified':
+                order_query = ' ORDER BY pptx_modified SORTINDEX, ' + \
+                    'pptx_name ASC, slide_number ASC'
+
+            if query['order_by'][1] == 'asc':
+                order_query = order_query.replace('SORTINDEX', 'ASC')
+            elif query['order_by'][1] == 'desc':
+                order_query = order_query.replace('SORTINDEX', 'DESC')
+
         base_query += order_query
         
         logging.info(base_query)

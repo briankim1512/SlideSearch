@@ -3,7 +3,8 @@ const state = {
     searchQuery: {
         text: '',
         title: '',
-        time_range: ['', '']
+        time_range: ['', ''],
+        order_by: [],
     },
     searchTimeout: null,
     searchPaneVisible: false,
@@ -41,6 +42,8 @@ const dom = {
     zoomedId: document.getElementById('zoomed-id'),
     zoomedImage: document.getElementById('zoomed-image'),
     advancedSearchOptions: document.getElementById('advanced-search-options'),
+    titleOrder: document.getElementById('title-order'),
+    modifiedOrder: document.getElementById('modified-order'),
 };
 
 ////////////////////
@@ -72,8 +75,7 @@ async function uploadPresentations() {
         return;
     }
 
-    const ingestResults = await pywebview.api.ingest_files(paths);
-    console.log(ingestResults)
+    await pywebview.api.ingest_files(paths);
     
     dom.uploadZone.style.display = 'block';
     dom.loading.style.display = 'none';
@@ -133,16 +135,15 @@ function exitZoom() {
 // Search related functions
 ////////////////////////////
 
-function focusOnSearchInput() {
+function focusOnSearchQuery() {
     showPane('search');
-    dom.searchInput.focus();
+    dom.searchQuery.focus();
 }
 
 function updateResults(results, prev_results=[]) {
     const new_hashes = new Set(results.map(result => result['hash']));
     const resultsBody = document.getElementById('results-body');
     resultsBody.innerHTML = '';
-    console.log(results);
 
     if (prev_results.length > 0) {
         // Add prev_results to top of results if checked to new results
@@ -181,7 +182,6 @@ function updateResults(results, prev_results=[]) {
             } else if (key === 'hash') {
                 continue;
             } else if (key === 'text') {
-                console.log('Adding text div for:', result[key]);
                 const textDiv = document.createElement('pre');
                 textDiv.className = 'result-text-pre';
                 textDiv.textContent = result[key];
@@ -205,7 +205,31 @@ function selectSlide (hash) {
         state.selectedSlides.splice(index, 1);
     }
     document.getElementById('stitch-button').disabled = state.selectedSlides.length === 0;
-    console.log('Selected slides:', state.selectedSlides);
+}
+
+function orderBySearch(thisDom, type) {
+    const domTitle = type === 'title' ? 'PPT 제목' : '수정 날짜';
+    dom.titleOrder.textContent = 'PPT 제목';
+    dom.modifiedOrder.textContent = '수정 날짜';
+    if (state.searchQuery.order_by == []) {
+        state.searchQuery.order_by = [type, 'asc'];
+        thisDom.textContent = `${domTitle} ▲`;
+    } else {
+        const newOrder = (
+            state.searchQuery.order_by[1] === 'asc' ? 'desc' : 'asc'
+        );
+        const orderSymbol = newOrder === 'asc' ? '▲' : '▼';
+        thisDom.textContent = `${domTitle} ${orderSymbol}`;
+        state.searchQuery.order_by = [type, newOrder];
+    }
+    searchSlides();
+}
+
+function resetOrderBy() {
+    console.log('reset order by');
+    state.searchQuery.order_by = [];
+    dom.titleOrder.textContent = 'PPT 제목 ▼';
+    dom.modifiedOrder.textContent = '수정 날짜';
 }
 
 function searchSlides () {
@@ -216,7 +240,8 @@ function searchSlides () {
         time_range: [
             dom.advancedSearchDateRangeStart.value,
             dom.advancedSearchDateRangeEnd.value
-        ]
+        ],
+        order_by: state.searchQuery.order_by,
     }
 
     if (
@@ -233,6 +258,8 @@ function searchSlides () {
         } else {
             state.results = [];
             updateResults([]);
+            console.log('No search query, resetting results');
+            resetOrderBy();
         }
 
         dom.stitchButton.disabled = state.selectedSlides.length === 0;
@@ -288,6 +315,7 @@ function resetSearch() {
     dom.stitchButton.disabled = true;
     dom.advancedSearchOptions.style.display = 'none';
     updateResults([]);
+    resetOrderBy();
     showPane('landing');
 }
 
@@ -317,7 +345,7 @@ async function stitchSelectedSlides() {
 }
 
 dom.uploadZone.addEventListener('click', uploadPresentations);
-dom.searchInput.addEventListener('click', focusOnSearchInput);
+dom.searchInput.addEventListener('click', focusOnSearchQuery);
 dom.backButton.addEventListener('click', resetSearch);
 dom.advancedSearchButton.addEventListener('click', toggleAdvancedSearch);
 dom.stitchButton.addEventListener('click', stitchSelectedSlides);
@@ -325,5 +353,11 @@ dom.searchQuery.addEventListener('input', searchSlides);
 dom.advancedSearchTitle.addEventListener('input', searchSlides);
 dom.advancedSearchDateRangeStart.addEventListener('change', checkDateInputs);
 dom.advancedSearchDateRangeEnd.addEventListener('change', checkDateInputs);
+dom.titleOrder.addEventListener('click', () => {
+    orderBySearch(dom.titleOrder, 'title');
+});
+dom.modifiedOrder.addEventListener('click', () => {
+    orderBySearch(dom.modifiedOrder, 'modified');
+});
 dom.zoomOpenButton.addEventListener('click', openZoomedSlide);
 dom.zoomBackButton.addEventListener('click', exitZoom);
