@@ -43,6 +43,10 @@ const dom = {
     advancedSearchOptions: document.getElementById('advanced-search-options'),
 };
 
+////////////////////
+// General functions
+////////////////////
+
 function showPane(pane) {
     if (pane === 'search') {
         dom.landingPane.style.display = 'none';
@@ -52,6 +56,10 @@ function showPane(pane) {
         dom.searchPane.style.display = 'none';
     }
 }
+
+///////////////////////////
+// Upload related functions
+///////////////////////////
 
 async function uploadPresentations() {
     const paths = await pywebview.api.pick_files();
@@ -88,6 +96,46 @@ function updateUploadProgress(percentage) {
     dom.loadingSpinner.style.display = 'none';
     dom.loadingBar.style.display = 'block';
     dom.loadingProgress.style.width = `${percentage}%`;
+}
+
+/////////////////////////
+// Zoom related functions
+/////////////////////////
+
+function zoomOnPhoto(path, id) {
+    dom.zoomedImage.src = path;
+    dom.zoomedId.textContent = id;
+    dom.zoomPane.style.display = 'flex';
+}
+
+async function openZoomedSlide() {
+    const slideId = dom.zoomedId.textContent;
+    dom.zoomOpenButton.textContent = '처리 중...';
+    dom.zoomOpenButton.style.textDecoration = 'none';
+    dom.zoomOpenButton.disabled = true;
+    if (slideId) {
+        await pywebview.api.stitch_slides([slideId]);
+        dom.zoomOpenButton.textContent = '장표 열기';
+        dom.zoomOpenButton.style.textDecoration = 'underline';
+        dom.zoomOpenButton.disabled = false;
+        return;
+    }
+    alert('장표 ID를 불러올 수 없습니다.');
+}
+
+function exitZoom() {
+    dom.zoomedImage.src = '';
+    dom.zoomedId.textContent = '';
+    dom.zoomPane.style.display = 'none';
+}
+
+////////////////////////////
+// Search related functions
+////////////////////////////
+
+function focusOnSearchInput() {
+    showPane('search');
+    dom.searchInput.focus();
 }
 
 function updateResults(results, prev_results=[]) {
@@ -149,12 +197,6 @@ function updateResults(results, prev_results=[]) {
     document.getElementById('result-count').textContent = results.length;
 }
 
-function zoomOnPhoto(path, id) {
-    dom.zoomedImage.src = path;
-    dom.zoomedId.textContent = id;
-    dom.zoomPane.style.display = 'flex';
-}
-
 function selectSlide (hash) {
     const index = state.selectedSlides.indexOf(hash);
     if (index === -1) {
@@ -214,6 +256,20 @@ function checkDateInputs() {
     }
 }
 
+function toggleAdvancedSearch() {
+    if (dom.advancedSearchOptions.style.display === 'none') {
+        dom.advancedSearchOptions.style.display = 'flex';
+    } else {
+        dom.advancedSearchDateRangeStart.value = '';
+        dom.advancedSearchDateRangeEnd.value = '';
+        dom.advancedSearchTitle.value = '';
+        state.searchQuery.title = '';
+        state.searchQuery.time_range = ['','']
+        dom.advancedSearchOptions.style.display = 'none';
+        searchSlides();
+    }
+}
+
 function resetSearch() {
     dom.searchQuery.value = '';
     dom.advancedSearchTitle.value = '';
@@ -235,51 +291,11 @@ function resetSearch() {
     showPane('landing');
 }
 
-async function openZoomedSlide() {
-    const slideId = dom.zoomedId.textContent;
-    dom.zoomOpenButton.textContent = '처리 중...';
-    dom.zoomOpenButton.style.textDecoration = 'none';
-    dom.zoomOpenButton.disabled = true;
-    if (slideId) {
-        await pywebview.api.stitch_slides([slideId]);
-        dom.zoomOpenButton.textContent = '장표 열기';
-        dom.zoomOpenButton.style.textDecoration = 'underline';
-        dom.zoomOpenButton.disabled = false;
-        return;
-    }
-    alert('장표 ID를 불러올 수 없습니다.');
-}
+///////////////////////////
+// Stitch related functions
+///////////////////////////
 
-function exitZoom() {
-    dom.zoomedImage.src = '';
-    dom.zoomedId.textContent = '';
-    dom.zoomPane.style.display = 'none';
-}
-
-dom.uploadZone.addEventListener('click', uploadPresentations);
-
-dom.searchInput.addEventListener('click', (event) => {
-    showPane('search');
-    dom.searchQuery.focus();
-});
-
-dom.backButton.addEventListener('click', resetSearch);
-
-dom.advancedSearchButton.addEventListener('click', () => {
-    if (dom.advancedSearchOptions.style.display === 'none') {
-        dom.advancedSearchOptions.style.display = 'flex';
-    } else {
-        dom.advancedSearchDateRangeStart.value = '';
-        dom.advancedSearchDateRangeEnd.value = '';
-        dom.advancedSearchTitle.value = '';
-        state.searchQuery.title = '';
-        state.searchQuery.time_range = ['','']
-        dom.advancedSearchOptions.style.display = 'none';
-        searchSlides();
-    }
-});
-
-dom.stitchButton.addEventListener('click', async () => {
+async function stitchSelectedSlides() {
     if (state.selectedSlides.length === 0) {
         alert('장표를 선택해 주세요')
     };
@@ -298,8 +314,13 @@ dom.stitchButton.addEventListener('click', async () => {
     dom.results.scrollTop = 0;
     dom.stitchButton.textContent = '선택한 장표로 새 PPT 만들기';
     dom.stitchButton.disabled = false;
-});
+}
 
+dom.uploadZone.addEventListener('click', uploadPresentations);
+dom.searchInput.addEventListener('click', focusOnSearchInput);
+dom.backButton.addEventListener('click', resetSearch);
+dom.advancedSearchButton.addEventListener('click', toggleAdvancedSearch);
+dom.stitchButton.addEventListener('click', stitchSelectedSlides);
 dom.searchQuery.addEventListener('input', searchSlides);
 dom.advancedSearchTitle.addEventListener('input', searchSlides);
 dom.advancedSearchDateRangeStart.addEventListener('change', checkDateInputs);
