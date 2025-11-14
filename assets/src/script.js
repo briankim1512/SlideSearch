@@ -82,8 +82,6 @@ async function uploadPresentations() {
     
     dom.uploadZone.style.display = 'block';
     dom.loading.style.display = 'none';
-
-    dom.searchInput.focus();
 }
 
 function updateUploadStatus(text) {
