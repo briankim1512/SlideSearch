@@ -1,9 +1,15 @@
-dist/
-build/
 assets/data/
 
-# From my personal python environment
-slideSearch/
+# From PyInstaller
+dist/
+build/
+# From Nuitka
+main.build/
+main.dist/
+main.onefile*/
+nuika*
+
+# From python virtual environment
 venv/
 __pycache__
 *.pyc

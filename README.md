@@ -41,7 +41,7 @@ SlideSearch는 파워포인트(`.pptx`) 파일에서 슬라이드를 검색하�
 
 ## 배포 (Windows 실행 파일 만들기)
 
-PyInstaller를 사용하여 독립 실행 파일을 만들 수 있습니다.
+### PyInstaller
 
 ```bash
 pyinstaller --windowed --onedir --add-data "assets;assets" --icon icon.ico main.py
@@ -51,6 +51,12 @@ pyinstaller --windowed --onedir --add-data "assets;assets" --icon icon.ico main.
 * `--add-data`: HTML, JS, CSS 등 `assets` 폴더를 포함합니다.
 
 빌드 후 `dist/` 폴더 안에 실행 파일이 생성됩니다.
+
+### Nuitka
+
+```bash
+python -m nuitka --mode=standalone --windows-console-mode=disable --windows-icon-from-ico=icon-ico --include-data-dir=assets=assets main.py
+```
 
 ## 사용 방법
 
