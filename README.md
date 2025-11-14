@@ -47,7 +47,7 @@ PyInstaller를 사용하여 독립 실행 파일을 만들 수 있습니다.
 pyinstaller --windowed --onedir --add-data "assets;assets" --icon icon.ico main.py
 ```
 
-* `--wibndowed`: 콘솔 없이 실행.
+* `--windowed`: 콘솔 없이 실행.
 * `--add-data`: HTML, JS, CSS 등 `assets` 폴더를 포함합니다.
 
 빌드 후 `dist/` 폴더 안에 실행 파일이 생성됩니다.
